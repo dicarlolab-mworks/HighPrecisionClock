@@ -38,6 +38,7 @@
 		E1B1F1A417189078006E0FC8 /* HighPrecisionClock.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1B1F18717188E69006E0FC8 /* HighPrecisionClock.bundle */; };
 		E1B1F1AB171890FC006E0FC8 /* MWorksCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1B1F1AA171890FC006E0FC8 /* MWorksCore.framework */; };
 		E1B1F1AD17189146006E0FC8 /* libboost_system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E1B1F1AC17189146006E0FC8 /* libboost_system.a */; };
+		E1B1F1B0171892C0006E0FC8 /* HighPrecisionClock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1B1F1AE171892C0006E0FC8 /* HighPrecisionClock.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -80,6 +81,8 @@
 		E1B1F19D17188F72006E0FC8 /* WARNING.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = WARNING.txt; path = "/Library/Application Support/MWorks/Developer/Xcode/WARNING.txt"; sourceTree = "<absolute>"; };
 		E1B1F1AA171890FC006E0FC8 /* MWorksCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MWorksCore.framework; path = /Library/Frameworks/MWorksCore.framework; sourceTree = "<absolute>"; };
 		E1B1F1AC17189146006E0FC8 /* libboost_system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboost_system.a; path = "/Library/Application Support/MWorks/Developer/lib/libboost_system.a"; sourceTree = "<absolute>"; };
+		E1B1F1AE171892C0006E0FC8 /* HighPrecisionClock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HighPrecisionClock.cpp; sourceTree = "<group>"; };
+		E1B1F1AF171892C0006E0FC8 /* HighPrecisionClock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HighPrecisionClock.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,6 +128,8 @@
 		E1B1F18C17188E69006E0FC8 /* HighPrecisionClock */ = {
 			isa = PBXGroup;
 			children = (
+				E1B1F1AF171892C0006E0FC8 /* HighPrecisionClock.h */,
+				E1B1F1AE171892C0006E0FC8 /* HighPrecisionClock.cpp */,
 				E1B1F19817188F10006E0FC8 /* HighPrecisionClockPlugin.cpp */,
 				E1B1F18D17188E69006E0FC8 /* Supporting Files */,
 			);
@@ -215,6 +220,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E1B1F19A17188F10006E0FC8 /* HighPrecisionClockPlugin.cpp in Sources */,
+				E1B1F1B0171892C0006E0FC8 /* HighPrecisionClock.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -2,6 +2,9 @@
 // Prefix header for all source files of the 'HighPrecisionClock' target in the 'HighPrecisionClock' project
 //
 
-#ifdef __OBJC__
-    #import <Cocoa/Cocoa.h>
+#ifdef __cplusplus
+    #include <boost/noncopyable.hpp>
+    
+    #include <MWorksCore/Plugin.h>
+    #include <MWorksCore/StandardComponentFactory.h>
 #endif
