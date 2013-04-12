@@ -15,6 +15,19 @@ BEGIN_NAMESPACE_MW
 
 class HighPrecisionClock : public Clock, boost::noncopyable {
     
+public:
+    HighPrecisionClock();
+    
+    MWTime getCurrentTimeNS() MW_OVERRIDE;
+    
+    void sleepNS(MWTime time) MW_OVERRIDE;
+    
+    MWTime getSystemTimeNS() MW_OVERRIDE;
+    MWTime getSystemBaseTimeNS() MW_OVERRIDE;
+    
+private:
+    const uint64_t systemBaseTime;
+    
 };
 
 
