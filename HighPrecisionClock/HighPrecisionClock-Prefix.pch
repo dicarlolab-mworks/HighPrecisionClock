@@ -7,7 +7,9 @@
 
 #ifdef __cplusplus
     #include <boost/noncopyable.hpp>
+    #include <boost/thread/thread.hpp>
     
+    #include <MWorksCore/MachUtilities.h>
     #include <MWorksCore/Plugin.h>
     #include <MWorksCore/StandardComponentFactory.h>
 #endif

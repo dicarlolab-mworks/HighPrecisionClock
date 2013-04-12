@@ -17,16 +17,28 @@ class HighPrecisionClock : public Clock, boost::noncopyable {
     
 public:
     HighPrecisionClock();
+    ~HighPrecisionClock();
     
+    MWTime getSystemBaseTimeNS() MW_OVERRIDE;
+    MWTime getSystemTimeNS() MW_OVERRIDE;
     MWTime getCurrentTimeNS() MW_OVERRIDE;
+	
+    void startClock() MW_OVERRIDE;
+    void stopClock() MW_OVERRIDE;
     
     void sleepNS(MWTime time) MW_OVERRIDE;
     
-    MWTime getSystemTimeNS() MW_OVERRIDE;
-    MWTime getSystemBaseTimeNS() MW_OVERRIDE;
-    
 private:
+    static const MWTime periodUS = 200LL;
+    static const MWTime computationUS = 50LL;
+    static const MWTime constraintUS = 100LL;
+    
+    bool isRunning() const { return (runLoopThread.get_id() != boost::thread::id()); }
+    void runLoop();
+    
     const uint64_t systemBaseTime;
+    
+    boost::thread runLoopThread;
     
 };
 
@@ -35,3 +47,29 @@ END_NAMESPACE_MW
 
 
 #endif // !defined(__HighPrecisionClock__HighPrecisionClock__)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

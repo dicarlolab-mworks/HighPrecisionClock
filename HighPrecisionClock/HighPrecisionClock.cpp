@@ -23,8 +23,47 @@ HighPrecisionClock::HighPrecisionClock() :
 }
 
 
+HighPrecisionClock::~HighPrecisionClock() {
+    stopClock();
+}
+
+
+MWTime HighPrecisionClock::getSystemBaseTimeNS() {
+    return MWTime(systemBaseTime);
+}
+
+
+MWTime HighPrecisionClock::getSystemTimeNS() {
+    return MWTime(mach_absolute_time());
+}
+
+
 MWTime HighPrecisionClock::getCurrentTimeNS() {
     return MWTime(mach_absolute_time() - systemBaseTime);
+}
+
+
+void HighPrecisionClock::startClock() {
+    if (!isRunning()) {
+        try {
+            runLoopThread = boost::thread(boost::bind(&HighPrecisionClock::runLoop,
+                                                      component_shared_from_this<HighPrecisionClock>()));
+        } catch (const boost::thread_resource_error &e) {
+            merror(M_SCHEDULER_MESSAGE_DOMAIN, "Unable to start HighPrecisionClock: %s", e.what());
+        }
+    }
+}
+
+
+void HighPrecisionClock::stopClock() {
+    if (isRunning()) {
+        runLoopThread.interrupt();
+        try {
+            runLoopThread.join();
+        } catch (const boost::system::system_error &e) {
+            merror(M_SCHEDULER_MESSAGE_DOMAIN, "Unable to stop HighPrecisionClock: %s", e.what());
+        }
+    }
 }
 
 
@@ -36,13 +75,21 @@ void HighPrecisionClock::sleepNS(MWTime time) {
 }
 
 
-MWTime HighPrecisionClock::getSystemTimeNS() {
-    return MWTime(mach_absolute_time());
-}
-
-
-MWTime HighPrecisionClock::getSystemBaseTimeNS() {
-    return MWTime(systemBaseTime);
+void HighPrecisionClock::runLoop() {
+    if (!set_realtime(periodUS * nanosPerMicro,
+                      computationUS * nanosPerMicro,
+                      constraintUS * nanosPerMicro))
+    {
+        merror(M_SCHEDULER_MESSAGE_DOMAIN, "HighPrecisionClock failed to achieve real time scheduling");
+    }
+    
+    while (true) {
+        // Sleep for 500ms
+        sleepMS(500);
+        
+        // Give another thread a chance to terminate this one
+        boost::this_thread::interruption_point();
+    }
 }
 
 
