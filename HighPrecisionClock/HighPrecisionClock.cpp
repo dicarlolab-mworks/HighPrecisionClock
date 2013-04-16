@@ -74,9 +74,7 @@ void HighPrecisionClock::sleepNS(MWTime time) {
     semaphore_t *sem = threadSpecificSemaphore.get();
     if (!sem) {
         semaphore_t newSem;
-        kern_return_t status = semaphore_create(mach_task_self(), &newSem, SYNC_POLICY_FIFO, 0);
-        if (KERN_SUCCESS != status) {
-            merror(M_SCHEDULER_MESSAGE_DOMAIN, "semaphore_create failed: %s (%d)", mach_error_string(status), status);
+        if (logMachError("semaphore_create", semaphore_create(mach_task_self(), &newSem, SYNC_POLICY_FIFO, 0))) {
             return;
         }
         threadSpecificSemaphore.reset(new semaphore_t(newSem));
@@ -88,19 +86,13 @@ void HighPrecisionClock::sleepNS(MWTime time) {
         waits.push(WaitInfo(expirationTime, *sem));
     }
     
-    kern_return_t status = semaphore_wait(*sem);
-    if (KERN_SUCCESS != status) {
-        merror(M_SCHEDULER_MESSAGE_DOMAIN, "semaphore_wait failed: %s (%d)", mach_error_string(status), status);
-    }
+    logMachError("semaphore_wait", semaphore_wait(*sem));
 }
 
 
 void HighPrecisionClock::destroySemaphore(semaphore_t *sem) {
     if (sem) {
-        kern_return_t status = semaphore_destroy(mach_task_self(), *sem);
-        if (KERN_SUCCESS != status) {
-            merror(M_SCHEDULER_MESSAGE_DOMAIN, "semaphore_destroy failed: %s (%d)", mach_error_string(status), status);
-        }
+        logMachError("semaphore_destroy", semaphore_destroy(mach_task_self(), *sem));
         delete sem;
     }
 }
@@ -118,27 +110,19 @@ void HighPrecisionClock::runLoop() {
         
         {
             lock_guard lock(waitsMutex);
-            
             while (!waits.empty() && waits.top().getExpirationTime() < nextPeriodStart) {
-                kern_return_t status = semaphore_signal(waits.top().getSemaphore());
-                if (KERN_SUCCESS != status) {
-                    merror(M_SCHEDULER_MESSAGE_DOMAIN, "semaphore_signal failed: %s (%d)", mach_error_string(status), status);
-                }
-                
+                logMachError("semaphore_signal", semaphore_signal(waits.top().getSemaphore()));
                 waits.pop();
-            }
-        }
-        
-        // Sleep until the next work cycle
-        if (mach_absolute_time() < nextPeriodStart) {
-            kern_return_t status = mach_wait_until(nextPeriodStart);
-            if (KERN_SUCCESS != status) {
-                merror(M_SCHEDULER_MESSAGE_DOMAIN, "mach_wait_until failed: %s (%d)", mach_error_string(status), status);
             }
         }
         
         // Give another thread a chance to terminate this one
         boost::this_thread::interruption_point();
+        
+        // Sleep until the next work cycle
+        if (mach_absolute_time() < nextPeriodStart) {
+            logMachError("mach_wait_until", mach_wait_until(nextPeriodStart));
+        }
     }
 }
 

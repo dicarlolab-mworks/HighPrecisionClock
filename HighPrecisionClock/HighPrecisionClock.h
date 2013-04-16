@@ -32,6 +32,14 @@ private:
     static const MWTime periodUS = 200LL;
     static const MWTime computationUS = 50LL;
     
+    static bool logMachError(const char *functionName, mach_error_t error) {
+        const bool failed = (error != ERR_SUCCESS);
+        if (failed) {
+            merror(M_SCHEDULER_MESSAGE_DOMAIN, "%s failed: %s (%d)", functionName, mach_error_string(error), error);
+        }
+        return failed;
+    }
+    
     static void destroySemaphore(semaphore_t *sem);
     
     bool isRunning() const { return (runLoopThread.get_id() != boost::thread::id()); }
