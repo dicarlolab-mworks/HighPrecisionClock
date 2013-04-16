@@ -31,7 +31,8 @@ public:
 private:
     static const MWTime periodUS = 200LL;
     static const MWTime computationUS = 50LL;
-    static const MWTime constraintUS = 100LL;
+    
+    static void destroySemaphore(semaphore_t *sem);
     
     bool isRunning() const { return (runLoopThread.get_id() != boost::thread::id()); }
     void runLoop();
@@ -39,6 +40,32 @@ private:
     const uint64_t systemBaseTime;
     
     boost::thread runLoopThread;
+    
+    class WaitInfo {
+    public:
+        WaitInfo(uint64_t expirationTime, semaphore_t semaphore) :
+            expirationTime(expirationTime),
+            semaphore(semaphore)
+        { }
+        
+        uint64_t getExpirationTime() const { return expirationTime; }
+        semaphore_t getSemaphore() const { return semaphore; }
+        
+        bool operator<(const WaitInfo &rhs) const {
+            // Use greater-than so that the instance with the smaller expiration time is closer to
+            // the top of the priority queue
+            return (expirationTime > rhs.expirationTime);
+        }
+        
+    private:
+        uint64_t expirationTime;
+        semaphore_t semaphore;
+    };
+    
+    boost::thread_specific_ptr<semaphore_t> threadSpecificSemaphore;
+    std::priority_queue<WaitInfo> waits;
+    boost::mutex waitsMutex;
+    typedef boost::lock_guard<boost::mutex> lock_guard;
     
 };
 

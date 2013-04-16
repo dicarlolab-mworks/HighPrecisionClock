@@ -4,10 +4,15 @@
 
 #include <mach/mach_error.h>
 #include <mach/mach_time.h>
+#include <mach/semaphore.h>
+#include <mach/task.h>
 
 #ifdef __cplusplus
+    #include <queue>
+    
     #include <boost/noncopyable.hpp>
     #include <boost/thread/thread.hpp>
+    #include <boost/thread/tss.hpp>
     
     #include <MWorksCore/MachUtilities.h>
     #include <MWorksCore/Plugin.h>
