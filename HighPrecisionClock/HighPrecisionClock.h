@@ -40,12 +40,22 @@ private:
         return failed;
     }
     
+    static mach_timebase_info_data_t getTimebaseInfo();
     static void destroySemaphore(semaphore_t *sem);
+    
+    MWTime absoluteToNanos(uint64_t absolute) const {
+        return absolute * timebaseInfo.numer / timebaseInfo.denom;
+    }
+    
+    uint64_t nanosToAbsolute(MWTime nanos) const {
+        return nanos * timebaseInfo.denom / timebaseInfo.numer;
+    }
     
     bool isRunning() const { return (runLoopThread.get_id() != boost::thread::id()); }
     void runLoop();
     
-    const uint64_t systemBaseTime;
+    const mach_timebase_info_data_t timebaseInfo;
+    const uint64_t systemBaseTimeAbsolute;
     
     boost::thread runLoopThread;
     

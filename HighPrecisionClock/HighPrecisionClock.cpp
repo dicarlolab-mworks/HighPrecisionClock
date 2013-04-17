@@ -12,16 +12,20 @@
 BEGIN_NAMESPACE_MW
 
 
-HighPrecisionClock::HighPrecisionClock() :
-    systemBaseTime(mach_absolute_time()),
-    threadSpecificSemaphore(&destroySemaphore)
-{
+mach_timebase_info_data_t HighPrecisionClock::getTimebaseInfo() {
     mach_timebase_info_data_t timebaseInfo;
-    if (KERN_SUCCESS != mach_timebase_info(&timebaseInfo) ||
-        timebaseInfo.numer != timebaseInfo.denom) {
-        throw SimpleException(M_SCHEDULER_MESSAGE_DOMAIN, "HighPrecisionClock is not supported on this platform");
+    if (logMachError("mach_timebase_info", mach_timebase_info(&timebaseInfo))) {
+        throw SimpleException(M_SCHEDULER_MESSAGE_DOMAIN, "Unable to create HighPrecisionClock");
     }
+    return timebaseInfo;
 }
+
+
+HighPrecisionClock::HighPrecisionClock() :
+    timebaseInfo(getTimebaseInfo()),
+    systemBaseTimeAbsolute(mach_absolute_time()),
+    threadSpecificSemaphore(&destroySemaphore)
+{ }
 
 
 HighPrecisionClock::~HighPrecisionClock() {
@@ -30,17 +34,17 @@ HighPrecisionClock::~HighPrecisionClock() {
 
 
 MWTime HighPrecisionClock::getSystemBaseTimeNS() {
-    return MWTime(systemBaseTime);
+    return absoluteToNanos(systemBaseTimeAbsolute);
 }
 
 
 MWTime HighPrecisionClock::getSystemTimeNS() {
-    return MWTime(mach_absolute_time());
+    return absoluteToNanos(mach_absolute_time());
 }
 
 
 MWTime HighPrecisionClock::getCurrentTimeNS() {
-    return MWTime(mach_absolute_time() - systemBaseTime);
+    return absoluteToNanos(mach_absolute_time() - systemBaseTimeAbsolute);
 }
 
 
@@ -69,7 +73,7 @@ void HighPrecisionClock::stopClock() {
 
 
 void HighPrecisionClock::sleepNS(MWTime time) {
-    const uint64_t expirationTime = mach_absolute_time() + uint64_t(time);
+    const uint64_t expirationTime = mach_absolute_time() + nanosToAbsolute(time);
     
     semaphore_t *sem = threadSpecificSemaphore.get();
     if (!sem) {
@@ -99,9 +103,10 @@ void HighPrecisionClock::destroySemaphore(semaphore_t *sem) {
 
 
 void HighPrecisionClock::runLoop() {
-    const uint64_t period = periodUS * nanosPerMicro;
+    const uint64_t period = nanosToAbsolute(periodUS * nanosPerMicro);
+    const uint64_t computation = nanosToAbsolute(computationUS * nanosPerMicro);
     
-    if (!set_realtime(period, computationUS * nanosPerMicro, period)) {
+    if (!set_realtime(period, computation, period)) {
         merror(M_SCHEDULER_MESSAGE_DOMAIN, "HighPrecisionClock failed to achieve real time scheduling");
     }
     
