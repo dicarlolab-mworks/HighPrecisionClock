@@ -74,9 +74,7 @@ void HighPrecisionClock::stopClock() {
 
 void HighPrecisionClock::sleepNS(MWTime time) {
     // Don't try to sleep for less than one period
-    if (time < periodUS * nanosPerMicro) {
-        return;
-    }
+    time = std::max(time, periodUS * nanosPerMicro);
     
     const uint64_t expirationTime = mach_absolute_time() + nanosToAbsolute(time);
     
@@ -118,14 +116,12 @@ void HighPrecisionClock::runLoop() {
         merror(M_SCHEDULER_MESSAGE_DOMAIN, "HighPrecisionClock failed to achieve real time scheduling");
     }
     
-    uint64_t nextStartTime = mach_absolute_time();
+    uint64_t startTime = mach_absolute_time();
     
     while (true) {
-        nextStartTime += period;
-        
         {
             lock_guard lock(waitsMutex);
-            while (!waits.empty() && waits.top().getExpirationTime() < nextStartTime) {
+            while (!waits.empty() && waits.top().getExpirationTime() <= startTime) {
                 logMachError("semaphore_signal", semaphore_signal(waits.top().getSemaphore()));
                 waits.pop();
             }
@@ -135,8 +131,9 @@ void HighPrecisionClock::runLoop() {
         boost::this_thread::interruption_point();
         
         // Sleep until the next work cycle
-        if (mach_absolute_time() < nextStartTime) {
-            logMachError("mach_wait_until", mach_wait_until(nextStartTime));
+        startTime += period;
+        if (mach_absolute_time() < startTime) {
+            logMachError("mach_wait_until", mach_wait_until(startTime));
         }
     }
 }
